@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -117,6 +116,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                   <DropdownMenuItem onClick={() => navigate('/profile')}>
                     <User className="w-4 h-4 mr-2" /> Profile
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/settings')}>
+                    <LayoutDashboard className="w-4 h-4 mr-2" /> Settings
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate('/admin')}>
                       <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
@@ -171,6 +173,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                     {user ? (
                       <>
                         <div className="text-xs text-muted-foreground px-2 mb-2">Signed in as {profile?.full_name}</div>
+                        <Button className="w-full" size="sm" variant="secondary" onClick={() => { navigate('/settings'); setMobileOpen(false); }}>
+                          <LayoutDashboard className="w-4 h-4 mr-2" /> Settings
+                        </Button>
                         {isAdmin && (
                           <Button className="w-full" size="sm" variant="secondary" onClick={() => { navigate('/admin'); setMobileOpen(false); }}>
                             <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard

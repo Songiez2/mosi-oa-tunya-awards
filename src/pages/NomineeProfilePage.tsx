@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { getNomineeById } from '@/lib/api';
 import PublicLayout from '@/components/layouts/PublicLayout';
 import VoteModal from '@/components/common/VoteModal';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Star, Share2, ExternalLink, Facebook, Instagram, Youtube, Globe,
-  Phone, Trophy, ChevronLeft, MessageCircle
+  Trophy, ChevronLeft, MessageCircle, Image as ImageIcon
 } from 'lucide-react';
 import type { Nominee } from '@/types/types';
 import { toast } from 'sonner';
@@ -113,6 +112,26 @@ export default function NomineeProfilePage() {
                 <div className="glass-card rounded-xl p-5">
                   <h2 className="font-bold text-base mb-3 text-gradient-gold">Biography</h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">{nominee.biography}</p>
+                </div>
+              )}
+
+              {/* Gallery */}
+              {nominee.gallery_urls && nominee.gallery_urls.length > 0 && (
+                <div className="glass-card rounded-xl p-5">
+                  <h2 className="font-bold text-base mb-3 text-gradient-gold flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4" /> Gallery
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {nominee.gallery_urls.map((url, i) => (
+                      <img
+                        key={i}
+                        src={url}
+                        alt={`Gallery ${i + 1}`}
+                        className="w-full h-32 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
+                        onClick={() => window.open(url, '_blank')}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

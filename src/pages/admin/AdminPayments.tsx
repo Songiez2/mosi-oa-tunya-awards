@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import AdminLayout from '@/components/layouts/AdminLayout';
 import { getPayments, approvePayment, rejectPayment } from '@/lib/api';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle, Eye, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle, Smartphone, FileJson } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Payment, Status } from '@/types/types';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -18,9 +18,9 @@ export default function AdminPayments() {
   const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [viewProof, setViewProof] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<Payment | null>(null);
   const [rejectNote, setRejectNote] = useState('');
+  const [viewMetadata, setViewMetadata] = useState<Payment | null>(null);
   const PAGE_SIZE = 20;
   const currency = settings.currency ?? 'K';
 
@@ -72,6 +72,8 @@ export default function AdminPayments() {
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={v => { setTypeFilter(v); setPage(1); }}>
@@ -90,7 +92,7 @@ export default function AdminPayments() {
             <table className="w-full min-w-max">
               <thead>
                 <tr className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">
-                  {['Ref', 'User', 'Type', 'Amount', 'Votes', 'Status', 'Date', 'Proof', 'Actions'].map(h => (
+                  {['Ref', 'User', 'Type', 'Amount', 'Votes', 'Phone', 'Status', 'Date', 'Lipila', 'Actions'].map(h => (
                     <th key={h} className="px-4 py-3 whitespace-nowrap font-semibold">{h}</th>
                   ))}
                 </tr>
@@ -107,12 +109,13 @@ export default function AdminPayments() {
                     <td className="px-4 py-2.5 whitespace-nowrap text-xs capitalize">{p.payment_type}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap text-sm font-bold text-primary">{currency}{p.amount.toLocaleString()}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap text-xs">{p.votes_count ?? '—'}</td>
+                    <td className="px-4 py-2.5 whitespace-nowrap text-xs">{p.phone ? <span className="flex items-center gap-1"><Smartphone className="w-3 h-3" />{p.phone}</span> : '—'}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap"><StatusBadge status={p.status} /></td>
                     <td className="px-4 py-2.5 whitespace-nowrap text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap">
-                      {p.payment_proof_url ? (
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setViewProof(p.payment_proof_url!)}>
-                          <Eye className="w-3.5 h-3.5 text-primary" />
+                      {p.lipila_reference ? (
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setViewMetadata(p)} title="View Lipila details">
+                          <FileJson className="w-3.5 h-3.5 text-primary" />
                         </Button>
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </td>
@@ -147,21 +150,6 @@ export default function AdminPayments() {
         )}
       </div>
 
-      {/* Proof Viewer */}
-      <Dialog open={!!viewProof} onOpenChange={() => setViewProof(null)}>
-        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg">
-          <DialogHeader><DialogTitle>Payment Proof</DialogTitle></DialogHeader>
-          {viewProof && (
-            <div className="space-y-3">
-              <img src={viewProof} alt="Payment proof" className="w-full max-h-80 object-contain rounded-lg" />
-              <a href={viewProof} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
-                <ExternalLink className="w-4 h-4" /> Open Full Size
-              </a>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
       {/* Reject Dialog */}
       <Dialog open={!!rejectTarget} onOpenChange={() => setRejectTarget(null)}>
         <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg">
@@ -174,6 +162,37 @@ export default function AdminPayments() {
               <Button className="bg-destructive text-destructive-foreground" onClick={handleReject}>Reject</Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lipila Metadata Dialog */}
+      <Dialog open={!!viewMetadata} onOpenChange={() => setViewMetadata(null)}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg">
+          <DialogHeader><DialogTitle>Lipila Transaction Details</DialogTitle></DialogHeader>
+          {viewMetadata && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="text-muted-foreground">Reference:</div>
+                <div className="font-mono text-xs">{viewMetadata.lipila_reference || '—'}</div>
+                <div className="text-muted-foreground">Transaction ID:</div>
+                <div className="font-mono text-xs">{viewMetadata.transaction_id || '—'}</div>
+                <div className="text-muted-foreground">Payment Method:</div>
+                <div>{viewMetadata.payment_method || '—'}</div>
+                <div className="text-muted-foreground">Phone:</div>
+                <div>{viewMetadata.phone || '—'}</div>
+                <div className="text-muted-foreground">Currency:</div>
+                <div>{viewMetadata.currency || '—'}</div>
+              </div>
+              {viewMetadata.metadata && (
+                <div>
+                  <div className="text-sm font-semibold mb-2">Full Metadata:</div>
+                  <pre className="bg-muted p-3 rounded-lg text-xs overflow-auto max-h-48">
+                    {JSON.stringify(viewMetadata.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </AdminLayout>

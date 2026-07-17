@@ -1,7 +1,7 @@
 // MOSI-OA TUNYA AWARDS — Type Definitions
 
 export type UserRole = 'admin' | 'moderator' | 'user';
-export type Status = 'pending' | 'approved' | 'rejected';
+export type Status = 'pending' | 'approved' | 'rejected' | 'completed' | 'failed';
 export type PaymentType = 'registration' | 'voting';
 export type MediaType = 'image' | 'video';
 
@@ -40,6 +40,7 @@ export interface Nominee {
   district?: string;
   profile_picture_url?: string;
   banner_image_url?: string;
+  gallery_urls?: string[];
   facebook?: string;
   instagram?: string;
   tiktok?: string;
@@ -95,10 +96,15 @@ export interface Payment {
   nominee_id?: string;
   amount: number;
   votes_count?: number;
-  payment_proof_url?: string;
   status: Status;
   notes?: string;
   transaction_ref: string;
+  phone?: string;
+  lipila_reference?: string;
+  transaction_id?: string;
+  payment_method?: string;
+  currency?: string;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   profiles?: Profile;
@@ -196,6 +202,7 @@ export interface SiteSettings {
   smtp_host: string;
   smtp_port: number;
   smtp_user: string;
+  smtp_password: string;
   smtp_encryption: string;
   email_from: string;
   email_from_name: string;

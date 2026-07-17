@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode } from 'react';
 
 // Public pages
@@ -28,6 +27,8 @@ import PartnerRegistrationPage from './pages/PartnerRegistrationPage';
 
 // User pages
 import UserProfilePage from './pages/UserProfilePage';
+import UserSettingsPage from './pages/UserSettingsPage';
+import PaymentHistoryPage from './pages/PaymentHistoryPage';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -85,6 +86,8 @@ export const routes: RouteConfig[] = [
 
   // User
   { name: 'Profile', path: '/profile', element: <UserProfilePage />, public: false },
+  { name: 'Settings', path: '/settings', element: <UserSettingsPage />, public: false },
+  { name: 'Payment History', path: '/payment-history', element: <PaymentHistoryPage />, public: false },
 
   // Admin
   { name: 'Admin Dashboard', path: '/admin', element: <AdminDashboard />, public: false },

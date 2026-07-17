@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
 
-  useEffect(() => { getCategories(true).then(setCategories); }, []);
+  useEffect(() => { getCategories(false).then(setCategories); }, []);
 
   return (
     <PublicLayout>

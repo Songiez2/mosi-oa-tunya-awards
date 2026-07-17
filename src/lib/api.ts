@@ -281,9 +281,40 @@ export async function getUserPayments(userId: string): Promise<Payment[]> {
   return Array.isArray(data) ? data : [];
 }
 
+export async function getPaymentById(id: string): Promise<Payment | null> {
+  const { data } = await supabase.from('payments').select('*').eq('id', id).maybeSingle();
+  return data;
+}
+
 export async function createPayment(payment: Partial<Payment>): Promise<{ id: string; transaction_ref: string } | null> {
   const { data } = await supabase.from('payments').insert(payment).select('id, transaction_ref').maybeSingle();
   return data;
+}
+
+export async function createLipilaPayment(params: {
+  phone: string;
+  nominee_id: string;
+  user_id?: string;
+  email?: string;
+  votes_count?: number;
+}): Promise<{ payment: Payment; lipila: Record<string, unknown> } | null> {
+  const { data, error } = await supabase.functions.invoke('create-payment', {
+    body: params,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function pollPaymentStatus(paymentId: string, maxAttempts = 30, interval = 3000): Promise<Payment> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const payment = await getPaymentById(paymentId);
+    if (!payment) throw new Error('Payment not found');
+    if (payment.status === 'completed' || payment.status === 'failed') {
+      return payment;
+    }
+    await new Promise(resolve => setTimeout(resolve, interval));
+  }
+  throw new Error('Payment status check timeout');
 }
 
 export async function approvePayment(id: string): Promise<void> {

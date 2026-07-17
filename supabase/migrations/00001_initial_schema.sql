@@ -21,7 +21,7 @@ CREATE TABLE profiles (
 -- CATEGORIES
 -- ============================================================
 CREATE TABLE categories (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL UNIQUE,
   description text,
   is_enabled boolean NOT NULL DEFAULT true,
@@ -33,7 +33,7 @@ CREATE TABLE categories (
 -- NOMINEES
 -- ============================================================
 CREATE TABLE nominees (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
   full_name text NOT NULL,
   stage_name text,
@@ -64,7 +64,7 @@ CREATE TABLE nominees (
 -- SPONSORS
 -- ============================================================
 CREATE TABLE sponsors (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_name text NOT NULL,
   logo_url text,
   rep_name text,
@@ -84,7 +84,7 @@ CREATE TABLE sponsors (
 -- PARTNERS
 -- ============================================================
 CREATE TABLE partners (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   org_name text NOT NULL,
   logo_url text,
   email text,
@@ -101,7 +101,7 @@ CREATE TABLE partners (
 -- PAYMENTS
 -- ============================================================
 CREATE TABLE payments (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES profiles(id) ON DELETE CASCADE,
   payment_type text NOT NULL CHECK (payment_type IN ('registration','voting')),
   nominee_id uuid REFERENCES nominees(id) ON DELETE SET NULL,
@@ -110,7 +110,7 @@ CREATE TABLE payments (
   payment_proof_url text,
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
   notes text,
-  transaction_ref text UNIQUE DEFAULT ('TXN-' || substr(uuid_generate_v4()::text,1,8)),
+  transaction_ref text UNIQUE DEFAULT ('TXN-' || substr(gen_random_uuid()::text,1,8)),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -119,7 +119,7 @@ CREATE TABLE payments (
 -- VOTES
 -- ============================================================
 CREATE TABLE votes (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   nominee_id uuid NOT NULL REFERENCES nominees(id) ON DELETE CASCADE,
   category_id uuid NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
@@ -132,7 +132,7 @@ CREATE TABLE votes (
 -- NEWS
 -- ============================================================
 CREATE TABLE news (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   slug text UNIQUE,
   summary text,
@@ -148,7 +148,7 @@ CREATE TABLE news (
 -- GALLERY
 -- ============================================================
 CREATE TABLE gallery (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text,
   description text,
   media_url text NOT NULL,
@@ -171,7 +171,7 @@ CREATE TABLE site_settings (
 -- AUDIT LOGS
 -- ============================================================
 CREATE TABLE audit_logs (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
   action text NOT NULL,
   entity_type text,
@@ -185,7 +185,7 @@ CREATE TABLE audit_logs (
 -- CONTACT MESSAGES
 -- ============================================================
 CREATE TABLE contact_messages (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   email text NOT NULL,
   phone text,
@@ -198,7 +198,7 @@ CREATE TABLE contact_messages (
 -- ANNOUNCEMENTS
 -- ============================================================
 CREATE TABLE announcements (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   content text NOT NULL,
   is_active boolean NOT NULL DEFAULT true,

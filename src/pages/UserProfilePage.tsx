@@ -24,9 +24,11 @@ export default function UserProfilePage() {
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
-    getUserPayments(user.id).then(setPayments);
-    getUserVotes(user.id).then(setVotes);
-  }, [user]);
+    if (user) {
+      getUserPayments(user.id).then(setPayments);
+      getUserVotes(user.id).then(setVotes);
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     if (profile) setForm({ full_name: profile.full_name, phone: profile.phone ?? '' });

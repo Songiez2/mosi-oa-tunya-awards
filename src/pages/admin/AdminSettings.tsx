@@ -114,33 +114,22 @@ export default function AdminSettings() {
           <TabsContent value="payment">
             <div className="glass-card rounded-xl p-5 space-y-4 mt-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-primary">Payment &amp; Registration Fee Settings</h2>
+                <h2 className="text-sm font-bold text-primary">Payment Settings</h2>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" className="accent-primary" checked={settings.payments_enabled !== false} onChange={e => set('payments_enabled', e.target.checked)} />
                   <span className="text-xs font-medium">Payments Enabled</span>
                 </label>
               </div>
 
-              {/* Registration fee — prominent section */}
+              {/* Lipila API Settings */}
               <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
                 <h3 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
-                  <CreditCard className="w-3.5 h-3.5" /> Nominee Registration Fee
+                  <CreditCard className="w-3.5 h-3.5" /> Lipila Mobile Money API
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Registration Fee Amount</Label>
-                    <Input type="number" min="0" className="bg-input border-border text-base font-bold" value={settings.nomination_fee ?? 100} onChange={e => set('nomination_fee', Number(e.target.value))} placeholder="100" />
-                    <p className="text-[10px] text-muted-foreground">Amount nominees must pay to register (in {settings.currency ?? 'K'})</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Mobile Money Number</Label>
-                    <Input className="bg-input border-border" value={settings.mobile_money_number ?? ''} onChange={e => set('mobile_money_number', e.target.value)} placeholder="0962267118" />
-                    <p className="text-[10px] text-muted-foreground">Number nominees send payment to</p>
-                  </div>
-                </div>
                 <div className="space-y-1.5">
-                  <Label>Payment Instructions (displayed to nominees)</Label>
-                  <Textarea className="bg-input border-border resize-none min-h-24" value={settings.payment_instructions ?? ''} onChange={e => set('payment_instructions', e.target.value)} placeholder={`1. Send K100 to Mobile Money 0962267118\n2. Screenshot your confirmation\n3. Send via WhatsApp when prompted`} />
+                  <Label>Lipila API Key</Label>
+                  <Input type="password" className="bg-input border-border" value={settings.lipila_api_key ?? ''} onChange={e => set('lipila_api_key', e.target.value)} placeholder="Enter your Lipila API key" />
+                  <p className="text-[10px] text-muted-foreground">API key for Lipila Mobile Money integration</p>
                 </div>
               </div>
 
@@ -244,6 +233,7 @@ export default function AdminSettings() {
                 <div className="space-y-1.5"><Label>SMTP Host</Label><Input className="bg-input border-border" value={settings.smtp_host ?? ''} onChange={e => set('smtp_host', e.target.value)} placeholder="smtp.gmail.com" /></div>
                 <div className="space-y-1.5"><Label>SMTP Port</Label><Input type="number" className="bg-input border-border" value={settings.smtp_port ?? 587} onChange={e => set('smtp_port', Number(e.target.value))} /></div>
                 <div className="space-y-1.5"><Label>SMTP Username</Label><Input className="bg-input border-border" value={settings.smtp_user ?? ''} onChange={e => set('smtp_user', e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>SMTP Password</Label><Input type="password" className="bg-input border-border" value={settings.smtp_password ?? ''} onChange={e => set('smtp_password', e.target.value)} placeholder="••••••••" /></div>
                 <div className="space-y-1.5"><Label>From Name</Label><Input className="bg-input border-border" value={settings.email_from_name ?? 'TUNYA Awards'} onChange={e => set('email_from_name', e.target.value)} /></div>
                 <div className="space-y-1.5"><Label>From Email</Label><Input type="email" className="bg-input border-border" value={settings.email_from ?? ''} onChange={e => set('email_from', e.target.value)} /></div>
                 <div className="space-y-1.5">
