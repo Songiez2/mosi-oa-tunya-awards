@@ -1,53 +1,85 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSettings } from '@/contexts/SettingsContext';
-import { getCategories, getFeaturedNominees, getSponsors, getPartners, getNews } from '@/lib/api';
+import {
+  getCategories,
+  getFeaturedNominees,
+  getSponsors,
+  getPartners,
+  getNews,
+} from '@/lib/api';
 import PublicLayout from '@/components/layouts/PublicLayout';
 import NomineeCard from '@/components/common/NomineeCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Trophy, Star, Users, Award, ChevronRight, Play, Mail, Phone,
-  MapPin, Clock, Sparkles, Crown, Music, Camera, Mic2, Laugh,
-  Instagram, Facebook, Youtube, Radio, Newspaper
+  Award,
+  Camera,
+  ChevronRight,
+  Clock,
+  Crown,
+  Laugh,
+  Mail,
+  Music,
+  Newspaper,
+  Phone,
+  Radio,
+  Sparkles,
+  Star,
+  Trophy,
+  Users,
 } from 'lucide-react';
-import type { Category, Nominee, Sponsor, Partner, News as NewsType } from '@/types/types';
+import type {
+  Category,
+  News as NewsType,
+  Nominee,
+  Partner,
+  Sponsor,
+} from '@/types/types';
 
-// Category icon map
 const categoryIcons: Record<string, React.ReactNode> = {
-  'Artist': <Music className="w-5 h-5" />,
-  'Model': <Crown className="w-5 h-5" />,
-  'DJ': <Radio className="w-5 h-5" />,
-  'Comedian': <Laugh className="w-5 h-5" />,
-  'Photographer': <Camera className="w-5 h-5" />,
-  'default': <Award className="w-5 h-5" />,
+  Artist: <Music className="h-5 w-5" />,
+  Model: <Crown className="h-5 w-5" />,
+  DJ: <Radio className="h-5 w-5" />,
+  Comedian: <Laugh className="h-5 w-5" />,
+  Photographer: <Camera className="h-5 w-5" />,
+  default: <Award className="h-5 w-5" />,
 };
 
-function getIcon(name: string) {
-  for (const [key, icon] of Object.entries(categoryIcons)) {
-    if (name.toLowerCase().includes(key.toLowerCase())) return icon;
-  }
-  return categoryIcons.default;
+function getCategoryIcon(name: string): React.ReactNode {
+  const matchedIcon = Object.entries(categoryIcons).find(
+    ([key]) => key !== 'default' && name.toLowerCase().includes(key.toLowerCase()),
+  );
+
+  return matchedIcon?.[1] ?? categoryIcons.default;
 }
 
-// Animated particles background
 function Particles() {
+  const particles = Array.from({ length: 20 }, (_, index) => ({
+    id: index,
+    left: `${(index * 37) % 100}%`,
+    top: `${(index * 53) % 100}%`,
+    size: `${(index % 6) + 2}px`,
+    delay: `${(index % 6) * 0.7}s`,
+    duration: `${(index % 4) + 4}s`,
+    opacity: 0.25 + (index % 4) * 0.12,
+  }));
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 20 }).map((_, i) => (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {particles.map((particle) => (
         <div
-          key={i}
+          key={particle.id}
           className="particle"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 6 + 2}px`,
-            height: `${Math.random() * 6 + 2}px`,
-            animationDelay: `${Math.random() * 6}s`,
-            animationDuration: `${Math.random() * 4 + 4}s`,
-            opacity: Math.random() * 0.6 + 0.2,
+            left: particle.left,
+            top: particle.top,
+            width: particle.size,
+            height: particle.size,
+            animationDelay: particle.delay,
+            animationDuration: particle.duration,
+            opacity: particle.opacity,
           }}
         />
       ))}
@@ -55,33 +87,48 @@ function Particles() {
   );
 }
 
-// Countdown Component
 function Countdown({ targetDate }: { targetDate: string }) {
-  const [timeLeft, setTimeLeft] = React.useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   useEffect(() => {
-    const calc = () => {
-      const diff = new Date(targetDate).getTime() - Date.now();
-      if (diff <= 0) return;
+    const updateCountdown = () => {
+      const difference = new Date(targetDate).getTime() - Date.now();
+
+      if (difference <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
       setTimeLeft({
-        days: Math.floor(diff / 86400000),
-        hours: Math.floor((diff % 86400000) / 3600000),
-        minutes: Math.floor((diff % 3600000) / 60000),
-        seconds: Math.floor((diff % 60000) / 1000),
+        days: Math.floor(difference / 86_400_000),
+        hours: Math.floor((difference % 86_400_000) / 3_600_000),
+        minutes: Math.floor((difference % 3_600_000) / 60_000),
+        seconds: Math.floor((difference % 60_000) / 1_000),
       });
     };
-    calc();
-    const t = setInterval(calc, 1000);
-    return () => clearInterval(t);
+
+    updateCountdown();
+    const interval = window.setInterval(updateCountdown, 1000);
+
+    return () => window.clearInterval(interval);
   }, [targetDate]);
 
   return (
-    <div className="flex gap-3 md:gap-4 justify-center">
-      {Object.entries(timeLeft).map(([unit, val]) => (
+    <div className="flex justify-center gap-3 md:gap-4">
+      {Object.entries(timeLeft).map(([unit, value]) => (
         <div key={unit} className="flex flex-col items-center">
-          <div className="glass-dark rounded-lg px-3 py-2 md:px-4 md:py-3 min-w-[50px] md:min-w-[64px] text-center gold-border">
-            <div className="text-xl md:text-3xl font-bold text-gradient-gold font-mono">{String(val).padStart(2, '0')}</div>
-            <div className="text-[10px] md:text-xs text-muted-foreground capitalize tracking-wider mt-0.5">{unit}</div>
+          <div className="glass-dark gold-border min-w-[52px] rounded-lg px-3 py-2 text-center md:min-w-[64px] md:px-4 md:py-3">
+            <div className="font-mono text-xl font-bold text-gradient-gold md:text-3xl">
+              {String(value).padStart(2, '0')}
+            </div>
+            <div className="mt-0.5 text-[10px] capitalize tracking-wider text-muted-foreground md:text-xs">
+              {unit}
+            </div>
           </div>
         </div>
       ))}
@@ -92,425 +139,438 @@ function Countdown({ targetDate }: { targetDate: string }) {
 export default function HomePage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
-  const [categories, setCategories] = React.useState<Category[]>([]);
-  const [nominees, setNominees] = React.useState<Nominee[]>([]);
-  const [sponsors, setSponsors] = React.useState<Sponsor[]>([]);
-  const [partners, setPartners] = React.useState<Partner[]>([]);
-  const [news, setNews] = React.useState<NewsType[]>([]);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [nominees, setNominees] = useState<Nominee[]>([]);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [news, setNews] = useState<NewsType[]>([]);
 
   useEffect(() => {
-    getCategories(true).then(setCategories);
-    getFeaturedNominees().then(setNominees);
-    getSponsors().then(setSponsors);
-    getPartners().then(setPartners);
-    getNews(1, 3).then(r => setNews(r.data));
+    const loadHomeData = async () => {
+      try {
+        const [categoryData, nomineeData, sponsorData, partnerData, newsResponse] =
+          await Promise.all([
+            getCategories(true),
+            getFeaturedNominees(),
+            getSponsors(),
+            getPartners(),
+            getNews(1, 3),
+          ]);
+
+        setCategories(categoryData ?? []);
+        setNominees(nomineeData ?? []);
+        setSponsors(sponsorData ?? []);
+        setPartners(partnerData ?? []);
+        setNews(newsResponse?.data ?? []);
+      } catch (error) {
+        console.error('Failed to load home page data:', error);
+      }
+    };
+
+    void loadHomeData();
   }, []);
 
-  const awardsDate = settings.awards_night_date ?? '2026-12-31T20:00:00';
-  const currency = settings.currency ?? 'K';
-  const votingFee = settings.voting_fee ?? 10;
+  const awardsDate = settings?.awards_night_date ?? '2026-12-31T20:00:00';
+  const currency = settings?.currency ?? 'K';
+  const votingFee = settings?.voting_fee ?? 10;
 
   return (
     <PublicLayout>
-      {/* ===== HERO ===== */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-        {/* Background */}
-        <div className="absolute inset-0 bg-background" />
+      {/* HERO */}
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden pt-16">
         <div
-          className="absolute inset-0"
-          style={{
-            background: 'radial-gradient(ellipse 100% 80% at 50% -10%, rgba(201,162,39,0.18) 0%, transparent 70%), radial-gradient(ellipse 60% 50% at 50% 100%, rgba(139,105,20,0.10) 0%, transparent 60%)'
-          }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/images/hero-bg.jpeg')" }}
         />
+        <div className="absolute inset-0 bg-black/60" />
         <Particles />
 
-        {/* Gold lines */}
-        <div className="absolute top-1/4 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(201,162,39,0.3), transparent)' }} />
-        <div className="absolute top-3/4 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(201,162,39,0.2), transparent)' }} />
+        <div
+          className="absolute left-0 right-0 top-1/4 h-px"
+          style={{
+            background:
+              'linear-gradient(90deg, transparent, rgba(201,162,39,0.3), transparent)',
+          }}
+        />
 
-        <div className="relative z-10 container mx-auto px-4 text-center py-20">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <Badge className="mb-6 bg-primary/15 text-primary border-primary/30 px-4 py-1.5 text-sm font-medium">
-              <Sparkles className="w-3.5 h-3.5 mr-1.5 inline" />
+        <div
+          className="absolute bottom-1/4 left-0 right-0 h-px"
+          style={{
+            background:
+              'linear-gradient(90deg, transparent, rgba(201,162,39,0.2), transparent)',
+          }}
+        />
+
+        <div className="container relative z-10 mx-auto px-4 py-20 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Badge className="mb-6 border-primary/30 bg-primary/15 px-4 py-1.5 text-sm font-medium text-primary">
+              <Sparkles className="mr-1.5 inline h-3.5 w-3.5" />
               Nominations Now Open
             </Badge>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.1 }}>
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-gold flex items-center justify-center gold-glow">
-                <Trophy className="w-10 h-10 md:w-14 md:h-14 text-primary-foreground" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <div className="mb-6 flex items-center justify-center">
+              <div className="gold-glow flex h-20 w-20 items-center justify-center rounded-full bg-gradient-gold md:h-28 md:w-28">
+                <Trophy className="h-10 w-10 text-primary-foreground md:h-14 md:w-14" />
               </div>
             </div>
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-3xl md:text-5xl lg:text-7xl font-black text-gradient-gold mb-3 leading-tight text-balance"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-3 text-3xl font-black leading-tight text-gradient-gold md:text-5xl lg:text-7xl"
             style={{ fontFamily: 'Cinzel, serif' }}
           >
-            {settings.header_text ?? 'TUNYA AWARDS 2026'}
+            {settings?.header_text ?? 'TUNYA AWARDS 2026'}
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.35 }}
-            className="text-base md:text-xl text-muted-foreground mb-4 max-w-xl mx-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="mx-auto mb-4 max-w-xl text-base text-muted-foreground md:text-xl"
           >
             Celebrating Excellence in Southern Zambia
           </motion.p>
 
-          {/* Countdown */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mb-8">
-            <div className="text-xs text-muted-foreground mb-3 flex items-center justify-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-primary" /> Awards Night Countdown
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-8"
+          >
+            <div className="mb-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5 text-primary" />
+              Awards Night Countdown
             </div>
             <Countdown targetDate={awardsDate} />
           </motion.div>
 
-          {/* CTAs */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-3 justify-center items-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
             <Button
               size="lg"
-              className="bg-gradient-gold text-primary-foreground font-bold px-6 py-3 text-sm hover:opacity-90 gold-glow"
+              className="gold-glow bg-gradient-gold px-6 py-3 text-sm font-bold text-primary-foreground hover:opacity-90"
               onClick={() => navigate('/vote')}
             >
-              <Star className="w-4 h-4 mr-2" /> Vote Now
+              <Star className="mr-2 h-4 w-4" />
+              Vote Now
             </Button>
+
             <Button
               size="lg"
               variant="secondary"
-              className="px-6 py-3 text-sm font-semibold border border-primary/30"
+              className="border border-primary/30 px-6 py-3 text-sm font-semibold"
               onClick={() => navigate('/register-nominee')}
             >
-              <Trophy className="w-4 h-4 mr-2" /> Register as Nominee
+              <Trophy className="mr-2 h-4 w-4" />
+              Register as Nominee
             </Button>
+
             <Button
               size="lg"
               variant="ghost"
-              className="px-6 py-3 text-sm font-semibold border border-primary/20"
+              className="border border-primary/20 px-6 py-3 text-sm font-semibold"
               onClick={() => navigate('/sponsor-registration')}
             >
-              <Crown className="w-4 h-4 mr-2" /> Become a Sponsor
+              <Crown className="mr-2 h-4 w-4" />
+              Become a Sponsor
             </Button>
           </motion.div>
         </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 rounded-full border-2 border-primary/40 flex items-start justify-center p-1.5">
-            <div className="w-1 h-2 rounded-full bg-primary" />
-          </div>
-        </div>
       </section>
 
-      {/* ===== ABOUT ===== */}
-      <section className="py-20 bg-muted/30 relative">
-        <div className="section-divider absolute top-0 left-0 right-0" />
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
+      {/* ABOUT */}
+      <section className="relative bg-muted/30 py-20">
+        <div className="container mx-auto grid items-center gap-12 px-4 md:grid-cols-2">
+          <div>
+            <Badge className="mb-4 border-primary/30 bg-primary/15 text-primary">
+              About The Awards
+            </Badge>
+
+            <h2
+              className="mb-5 text-2xl font-black text-gradient-gold md:text-4xl"
+              style={{ fontFamily: 'Cinzel, serif' }}
             >
-              <Badge className="mb-4 bg-primary/15 text-primary border-primary/30">About The Awards</Badge>
-              <h2 className="text-2xl md:text-4xl font-black text-gradient-gold mb-5 text-balance" style={{ fontFamily: 'Cinzel, serif' }}>
-                Celebrating Southern Zambia's Finest
-              </h2>
-              <p className="text-muted-foreground leading-relaxed mb-5">
-                {settings.about_content ?? 'The TUNYA SOUTHERN AWARDS is the most prestigious awards ceremony in Southern Zambia, celebrating excellence across music, business, entertainment, and more.'}
-              </p>
-              <div className="grid grid-cols-3 gap-4">
-                {[['25+', 'Categories'], ['100s', 'Nominees'], ['1000s', 'Voters']].map(([num, label]) => (
-                  <div key={label} className="text-center p-3 glass-card rounded-lg">
-                    <div className="text-xl font-black text-gradient-gold">{num}</div>
-                    <div className="text-xs text-muted-foreground">{label}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
-              className="relative"
-            >
-              <div className="aspect-video rounded-2xl glass-card overflow-hidden flex items-center justify-center relative">
-                <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(201,162,39,0.15), transparent 70%)' }} />
-                <Trophy className="w-24 h-24 text-primary/30" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="glass-dark rounded-lg p-3 text-center">
-                    <div className="text-sm font-semibold text-gradient-gold">Awards Night 2026</div>
-                    <div className="text-xs text-muted-foreground">Southern Zambia's Premier Awards</div>
-                  </div>
+              Celebrating Southern Zambia&apos;s Finest
+            </h2>
+
+            <p className="mb-5 leading-relaxed text-muted-foreground">
+              {settings?.about_content ??
+                'The TUNYA SOUTHERN AWARDS is the most prestigious awards ceremony in Southern Zambia, celebrating excellence across music, business, entertainment, and more.'}
+            </p>
+
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                ['25+', 'Categories'],
+                ['100s', 'Nominees'],
+                ['1000s', 'Voters'],
+              ].map(([number, label]) => (
+                <div key={label} className="glass-card rounded-lg p-3 text-center">
+                  <div className="text-xl font-black text-gradient-gold">{number}</div>
+                  <div className="text-xs text-muted-foreground">{label}</div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-card relative flex aspect-video items-center justify-center overflow-hidden rounded-2xl">
+            <Trophy className="h-24 w-24 text-primary/30" />
+            <div className="glass-dark absolute bottom-4 left-4 right-4 rounded-lg p-3 text-center">
+              <div className="text-sm font-semibold text-gradient-gold">
+                Awards Night 2026
               </div>
-            </motion.div>
+              <div className="text-xs text-muted-foreground">
+                Southern Zambia&apos;s Premier Awards
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ===== CATEGORIES ===== */}
+      {/* CATEGORIES */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">Award Categories</Badge>
-            <h2 className="text-2xl md:text-4xl font-black text-gradient-gold mb-3" style={{ fontFamily: 'Cinzel, serif' }}>
+          <div className="mb-12 text-center">
+            <Badge className="mb-3 border-primary/30 bg-primary/15 text-primary">
+              Award Categories
+            </Badge>
+            <h2
+              className="mb-3 text-2xl font-black text-gradient-gold md:text-4xl"
+              style={{ fontFamily: 'Cinzel, serif' }}
+            >
               {categories.length} Award Categories
             </h2>
-            <p className="text-muted-foreground max-w-md mx-auto text-sm">Recognizing talent and excellence across every discipline in Southern Zambia</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {categories.slice(0, 10).map((cat, i) => (
-              <motion.div
-                key={cat.id}
-                initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}
-              >
-                <Link to={`/categories?cat=${cat.id}`}>
-                  <div className="glass-card rounded-xl p-4 text-center hover-gold group cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-2.5 group-hover:bg-primary/25 transition-colors text-primary">
-                      {getIcon(cat.name)}
-                    </div>
-                    <div className="text-xs font-medium text-foreground leading-tight">{cat.name.replace(' Award', '').replace(' of the Year', '')}</div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {categories.slice(0, 10).map((category) => (
+              <Link key={category.id} to={`/categories?cat=${category.id}`}>
+                <div className="glass-card hover-gold cursor-pointer rounded-xl p-4 text-center">
+                  <div className="mx-auto mb-2.5 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+                    {getCategoryIcon(category.name)}
                   </div>
-                </Link>
-              </motion.div>
+                  <div className="text-xs font-medium">
+                    {category.name.replace(' Award', '').replace(' of the Year', '')}
+                  </div>
+                </div>
+              </Link>
             ))}
-            {categories.length > 10 && (
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.42 }}>
-                <Link to="/categories">
-                  <div className="glass-card rounded-xl p-4 text-center hover-gold group cursor-pointer border-primary/30">
-                    <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center mx-auto mb-2.5">
-                      <ChevronRight className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <div className="text-xs font-medium text-primary">+{categories.length - 10} More</div>
-                  </div>
-                </Link>
-              </motion.div>
-            )}
           </div>
 
-          <div className="text-center mt-8">
-            <Button variant="secondary" className="border border-primary/30" onClick={() => navigate('/categories')}>
-              View All Categories <ChevronRight className="w-4 h-4 ml-1" />
+          <div className="mt-8 text-center">
+            <Button
+              variant="secondary"
+              className="border border-primary/30"
+              onClick={() => navigate('/categories')}
+            >
+              View All Categories
+              <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* ===== FEATURED NOMINEES ===== */}
+      {/* FEATURED NOMINEES */}
       {nominees.length > 0 && (
-        <section className="py-20 bg-muted/20 relative">
-          <div className="section-divider absolute top-0 left-0 right-0" />
+        <section className="bg-muted/20 py-20">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">Featured Nominees</Badge>
-              <h2 className="text-2xl md:text-4xl font-black text-gradient-gold mb-3" style={{ fontFamily: 'Cinzel, serif' }}>
+            <div className="mb-12 text-center">
+              <Badge className="mb-3 border-primary/30 bg-primary/15 text-primary">
+                Featured Nominees
+              </Badge>
+              <h2
+                className="text-2xl font-black text-gradient-gold md:text-4xl"
+                style={{ fontFamily: 'Cinzel, serif' }}
+              >
                 Top Contenders
               </h2>
-              <p className="text-muted-foreground max-w-md mx-auto text-sm">Vote for your favorites and help them win</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {nominees.map((n, i) => <NomineeCard key={n.id} nominee={n} index={i} />)}
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+              {nominees.map((nominee, index) => (
+                <NomineeCard key={nominee.id} nominee={nominee} index={index} />
+              ))}
             </div>
 
-            <div className="text-center mt-10">
-              <Button className="bg-gradient-gold text-primary-foreground font-semibold" onClick={() => navigate('/nominees')}>
-                View All Nominees <ChevronRight className="w-4 h-4 ml-1" />
+            <div className="mt-10 text-center">
+              <Button
+                className="bg-gradient-gold font-semibold text-primary-foreground"
+                onClick={() => navigate('/nominees')}
+              >
+                View All Nominees
+                <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
           </div>
-          <div className="section-divider absolute bottom-0 left-0 right-0" />
         </section>
       )}
 
-      {/* ===== VOTING PROCESS ===== */}
+      {/* VOTING PROCESS */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">How It Works</Badge>
-            <h2 className="text-2xl md:text-4xl font-black text-gradient-gold mb-3" style={{ fontFamily: 'Cinzel, serif' }}>
+          <div className="mb-12 text-center">
+            <Badge className="mb-3 border-primary/30 bg-primary/15 text-primary">
+              How It Works
+            </Badge>
+            <h2
+              className="text-2xl font-black text-gradient-gold md:text-4xl"
+              style={{ fontFamily: 'Cinzel, serif' }}
+            >
               Voting Process
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+          <div className="grid gap-6 md:grid-cols-4">
             {[
-              { step: '01', title: 'Create Account', desc: 'Register for free with your email and phone number', icon: <Users className="w-6 h-6" /> },
-              { step: '02', title: 'Choose Nominee', desc: 'Browse categories and find your favorite nominee', icon: <Star className="w-6 h-6" /> },
-              { step: '03', title: 'Pay & Vote', desc: `Votes at ${currency}${votingFee} each. Pay via Mobile Money and upload proof`, icon: <Trophy className="w-6 h-6" /> },
-              { step: '04', title: 'Votes Added', desc: 'Payment verified within 24 hours, votes automatically added', icon: <Award className="w-6 h-6" /> },
-            ].map((s, i) => (
-              <motion.div
-                key={s.step}
-                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-              >
-                <div className="glass-card rounded-xl p-6 text-center hover-gold relative">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <div className="bg-gradient-gold text-primary-foreground text-xs font-black px-3 py-1 rounded-full">{s.step}</div>
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-3 mt-2 text-primary">
-                    {s.icon}
-                  </div>
-                  <h3 className="font-bold text-sm mb-1.5">{s.title}</h3>
-                  <p className="text-xs text-muted-foreground">{s.desc}</p>
+              {
+                step: '01',
+                title: 'Create Account',
+                description: 'Register for free with your email and phone number.',
+                icon: <Users className="h-6 w-6" />,
+              },
+              {
+                step: '02',
+                title: 'Choose Nominee',
+                description: 'Browse categories and find your favorite nominee.',
+                icon: <Star className="h-6 w-6" />,
+              },
+              {
+                step: '03',
+                title: 'Pay & Vote',
+                description: `Votes cost ${currency}${votingFee} each.`,
+                icon: <Trophy className="h-6 w-6" />,
+              },
+              {
+                step: '04',
+                title: 'Votes Added',
+                description: 'Verified votes are automatically added.',
+                icon: <Award className="h-6 w-6" />,
+              },
+            ].map((item) => (
+              <div key={item.step} className="glass-card hover-gold relative rounded-xl p-6 text-center">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-gold px-3 py-1 text-xs font-black text-primary-foreground">
+                  {item.step}
                 </div>
-              </motion.div>
+                <div className="mx-auto mb-3 mt-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+                  {item.icon}
+                </div>
+                <h3 className="mb-1.5 text-sm font-bold">{item.title}</h3>
+                <p className="text-xs text-muted-foreground">{item.description}</p>
+              </div>
             ))}
-          </div>
-          <div className="text-center mt-10">
-            <Button className="bg-gradient-gold text-primary-foreground font-semibold" size="lg" onClick={() => navigate('/vote')}>
-              Start Voting Now <Star className="w-4 h-4 ml-2" />
-            </Button>
           </div>
         </div>
       </section>
 
-      {/* ===== SPONSORS ===== */}
-      {sponsors.length > 0 && (
-        <section className="py-16 bg-muted/20 relative">
-          <div className="section-divider absolute top-0 left-0 right-0" />
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-10">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">Our Sponsors</Badge>
-              <h2 className="text-xl md:text-3xl font-black text-gradient-gold" style={{ fontFamily: 'Cinzel, serif' }}>Proud Sponsors</h2>
-            </div>
-            <div className="flex flex-wrap justify-center gap-4">
-              {sponsors.map((s, i) => (
-                <motion.div
-                  key={s.id}
-                  initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-                >
-                  <div className="glass-card rounded-xl p-4 flex items-center gap-3 hover-gold">
-                    {s.logo_url ? (
-                      <img src={s.logo_url} alt={s.company_name} className="w-12 h-12 object-contain rounded" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-gradient-card flex items-center justify-center text-primary font-bold text-sm">
-                        {s.company_name[0]}
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-semibold text-sm">{s.company_name}</div>
-                      {s.package && <div className="text-xs text-primary">{s.package}</div>}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <div className="text-center mt-8">
-              <Button variant="secondary" className="border border-primary/30" onClick={() => navigate('/sponsor-registration')}>
-                Become a Sponsor <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          </div>
-          <div className="section-divider absolute bottom-0 left-0 right-0" />
-        </section>
-      )}
-
-      {/* ===== PARTNERS ===== */}
-      {partners.length > 0 && (
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-10">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">Our Partners</Badge>
-              <h2 className="text-xl md:text-3xl font-black text-gradient-gold" style={{ fontFamily: 'Cinzel, serif' }}>Partners & Collaborators</h2>
-            </div>
-            <div className="flex flex-wrap justify-center gap-3">
-              {partners.map((p, i) => (
-                <motion.div key={p.id} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
-                  <div className="glass-card rounded-xl p-3 flex items-center gap-2 hover-gold">
-                    {p.logo_url ? (
-                      <img src={p.logo_url} alt={p.org_name} className="w-10 h-10 object-contain rounded" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center text-primary font-bold text-xs">
-                        {p.org_name[0]}
-                      </div>
-                    )}
-                    <span className="text-sm font-medium">{p.org_name}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <div className="text-center mt-8">
-              <Button variant="secondary" className="border border-primary/30" onClick={() => navigate('/partner-registration')}>
-                Become a Partner <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ===== NEWS ===== */}
+      {/* NEWS */}
       {news.length > 0 && (
-        <section className="py-20 bg-muted/20 relative">
-          <div className="section-divider absolute top-0 left-0 right-0" />
+        <section className="bg-muted/20 py-20">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">Latest Updates</Badge>
-              <h2 className="text-2xl md:text-4xl font-black text-gradient-gold mb-3" style={{ fontFamily: 'Cinzel, serif' }}>Latest News</h2>
+            <div className="mb-12 text-center">
+              <Badge className="mb-3 border-primary/30 bg-primary/15 text-primary">
+                Latest Updates
+              </Badge>
+              <h2
+                className="text-2xl font-black text-gradient-gold md:text-4xl"
+                style={{ fontFamily: 'Cinzel, serif' }}
+              >
+                Latest News
+              </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {news.map((article, i) => (
-                <motion.div key={article.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-                  <Link to={`/news/${article.id}`}>
-                    <div className="glass-card rounded-xl overflow-hidden hover-gold h-full flex flex-col">
-                      {article.image_url ? (
-                        <div className="aspect-video overflow-hidden">
-                          <img src={article.image_url} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                        </div>
-                      ) : (
-                        <div className="aspect-video bg-gradient-card flex items-center justify-center">
-                          <Newspaper className="w-10 h-10 text-primary/30" />
-                        </div>
-                      )}
-                      <div className="p-4 flex flex-col flex-1">
-                        <div className="text-xs text-muted-foreground mb-2">{new Date(article.created_at).toLocaleDateString()}</div>
-                        <h3 className="font-bold text-sm mb-2 text-balance">{article.title}</h3>
-                        {article.summary && <p className="text-xs text-muted-foreground line-clamp-2 flex-1">{article.summary}</p>}
-                        <div className="text-xs text-primary mt-2 font-medium">Read More →</div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {news.map((article) => (
+                <Link key={article.id} to={`/news/${article.id}`}>
+                  <article className="glass-card hover-gold h-full overflow-hidden rounded-xl">
+                    {article.image_url ? (
+                      <img
+                        src={article.image_url}
+                        alt={article.title}
+                        className="aspect-video w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-video items-center justify-center bg-gradient-card">
+                        <Newspaper className="h-10 w-10 text-primary/30" />
                       </div>
+                    )}
+
+                    <div className="p-4">
+                      <div className="mb-2 text-xs text-muted-foreground">
+                        {new Date(article.created_at).toLocaleDateString()}
+                      </div>
+                      <h3 className="mb-2 text-sm font-bold">{article.title}</h3>
+                      {article.summary && (
+                        <p className="text-xs text-muted-foreground">{article.summary}</p>
+                      )}
+                      <div className="mt-3 text-xs font-medium text-primary">Read More →</div>
                     </div>
-                  </Link>
-                </motion.div>
+                  </article>
+                </Link>
               ))}
             </div>
-            <div className="text-center mt-8">
-              <Button variant="secondary" className="border border-primary/30" onClick={() => navigate('/news')}>
-                View All News <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
           </div>
-          <div className="section-divider absolute bottom-0 left-0 right-0" />
         </section>
       )}
 
-      {/* ===== CONTACT CTA ===== */}
+      {/* CONTACT */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="glass-card rounded-2xl p-8 md:p-12 text-center relative overflow-hidden">
-            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(201,162,39,0.12), transparent 70%)' }} />
-            <div className="relative z-10">
-              <Trophy className="w-12 h-12 text-primary mx-auto mb-4" />
-              <h2 className="text-2xl md:text-4xl font-black text-gradient-gold mb-4 text-balance" style={{ fontFamily: 'Cinzel, serif' }}>
-                Be Part of History
-              </h2>
-              <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                Join thousands of fans voting for their favorites at the most prestigious awards in Southern Zambia.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
-                  <Phone className="w-4 h-4 text-primary" />
-                  {settings.help_number ?? '0962267118'}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
-                  <Mail className="w-4 h-4 text-primary" />
-                  {settings.help_email ?? 'info@tunyaawards.com'}
-                </div>
+          <div className="glass-card rounded-2xl p-8 text-center md:p-12">
+            <Trophy className="mx-auto mb-4 h-12 w-12 text-primary" />
+            <h2
+              className="mb-4 text-2xl font-black text-gradient-gold md:text-4xl"
+              style={{ fontFamily: 'Cinzel, serif' }}
+            >
+              Be Part of History
+            </h2>
+
+            <p className="mx-auto mb-8 max-w-lg text-muted-foreground">
+              Join thousands of fans voting for their favorites at the most prestigious
+              awards in Southern Zambia.
+            </p>
+
+            <div className="mb-6 flex flex-col items-center justify-center gap-4 text-sm text-muted-foreground sm:flex-row">
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-primary" />
+                {settings?.help_number ?? '0962267118'}
               </div>
-              <div className="flex gap-3 justify-center mt-6">
-                <Button className="bg-gradient-gold text-primary-foreground font-semibold" onClick={() => navigate('/vote')}>Vote Now</Button>
-                <Button variant="secondary" className="border border-primary/30" onClick={() => navigate('/contact')}>Contact Us</Button>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                {settings?.help_email ?? 'info@tunyaawards.com'}
               </div>
+            </div>
+
+            <div className="flex justify-center gap-3">
+              <Button
+                className="bg-gradient-gold font-semibold text-primary-foreground"
+                onClick={() => navigate('/vote')}
+              >
+                Vote Now
+              </Button>
+              <Button
+                variant="secondary"
+                className="border border-primary/30"
+                onClick={() => navigate('/contact')}
+              >
+                Contact Us
+              </Button>
             </div>
           </div>
         </div>
