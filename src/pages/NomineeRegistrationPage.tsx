@@ -27,7 +27,8 @@ export default function NomineeRegistrationPage() {
   const [form, setForm] = useState({
     full_name: '', stage_name: '', category_id: '', biography: '',
     phone: '', email: '', province: '', district: '',
-    facebook: '', instagram: '', tiktok: '', youtube: '', website: '', whatsapp: ''
+    facebook: '', instagram: '', tiktok: '', youtube: '', website: '', whatsapp: '',
+    supporting_docs: ''
   });
 
   useEffect(() => { getCategories(true).then(setCategories); }, []);
@@ -191,6 +192,12 @@ export default function NomineeRegistrationPage() {
                   <Input className="bg-input border-border" placeholder={label} value={(form as Record<string, string>)[k]} onChange={set(k)} />
                 </div>
               ))}
+            </div>
+
+            <div className="space-y-1.5 pt-2">
+              <Label>Supporting Documents URL / Link to Gallery</Label>
+              <Input className="bg-input border-border" placeholder="Google Drive, Dropbox, or OneDrive link" value={form.supporting_docs} onChange={e => setForm(f => ({ ...f, supporting_docs: e.target.value }))} />
+              <p className="text-xs text-muted-foreground">Please upload any additional photos or documents to a cloud folder and paste the public link here.</p>
             </div>
 
             <Button type="submit" className="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold py-3" disabled={loading}>

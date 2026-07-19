@@ -10,6 +10,9 @@ export interface Profile {
   full_name: string;
   email: string;
   phone?: string;
+  country?: string;
+  province?: string;
+  city?: string;
   role: UserRole;
   is_suspended: boolean;
   avatar_url?: string;
@@ -183,6 +186,21 @@ export interface SiteSettings {
   payment_qr_url: string;
   manual_verification: boolean;
   payment_methods: string[];
+  // Payment Gateways & Modes
+  payment_mode: 'automatic' | 'manual';
+  lipila_enabled: boolean;
+  lipila_sandbox: boolean;
+  lipila_api_key: string;
+  lipila_account_id: string;
+  lipila_webhook_secret: string;
+  lipila_currency: string;
+  lipila_timeout: number;
+  lipila_retry_attempts: number;
+  mtn_enabled: boolean;
+  airtel_enabled: boolean;
+  zamtel_enabled: boolean;
+  cards_enabled: boolean;
+
   // Contact & Links
   quick_links: string;
   support_links: string;
@@ -192,6 +210,16 @@ export interface SiteSettings {
   contact_email: string;
   whatsapp_number: string;
   whatsapp_enabled: boolean;
+  
+  // Voting Config
+  vote_min_quantity: number;
+  vote_max_quantity: number;
+  voting_start_date: string;
+  voting_end_date: string;
+  voting_status: 'open' | 'closed';
+  vote_discounts: boolean;
+  vote_taxes: number;
+
   // Email / SMTP
   smtp_host: string;
   smtp_port: number;

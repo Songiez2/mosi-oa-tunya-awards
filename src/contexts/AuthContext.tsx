@@ -11,7 +11,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isModerator: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, fullName: string, phone: string, country?: string, province?: string, city?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -49,10 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, phone: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string, country?: string, province?: string, city?: string) => {
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { full_name: fullName, phone } }
+      options: { data: { full_name: fullName, phone, country, province, city } }
     });
     return { error: error?.message ?? null };
   };

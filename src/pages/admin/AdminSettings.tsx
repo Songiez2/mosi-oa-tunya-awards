@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/components/layouts/AdminLayout';
 import { getSiteSettings, updateSiteSettings } from '@/lib/api';
+import { useSettings } from '@/contexts/SettingsContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,7 @@ import { toast } from 'sonner';
 import type { SiteSettings } from '@/types/types';
 
 export default function AdminSettings() {
+  const { refetch } = useSettings();
   const [settings, setSettings] = useState<Partial<SiteSettings>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,6 +28,7 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setSaving(true);
     await updateSiteSettings(settings as Record<string, unknown>);
+    await refetch();
     toast.success('Settings saved successfully');
     setSaving(false);
   };
@@ -113,76 +116,99 @@ export default function AdminSettings() {
           {/* Payment */}
           <TabsContent value="payment">
             <div className="glass-card rounded-xl p-5 space-y-4 mt-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-primary">Payment &amp; Registration Fee Settings</h2>
+              <div className="flex items-center justify-between pb-3 border-b border-border">
+                <h2 className="text-sm font-bold text-primary">Payment Modes & Lipila Gateway</h2>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" className="accent-primary" checked={settings.payments_enabled !== false} onChange={e => set('payments_enabled', e.target.checked)} />
                   <span className="text-xs font-medium">Payments Enabled</span>
                 </label>
               </div>
-
-              {/* Registration fee — prominent section */}
-              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
-                <h3 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
-                  <CreditCard className="w-3.5 h-3.5" /> Nominee Registration Fee
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Registration Fee Amount</Label>
-                    <Input type="number" min="0" className="bg-input border-border text-base font-bold" value={settings.nomination_fee ?? 100} onChange={e => set('nomination_fee', Number(e.target.value))} placeholder="100" />
-                    <p className="text-[10px] text-muted-foreground">Amount nominees must pay to register (in {settings.currency ?? 'K'})</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Mobile Money Number</Label>
-                    <Input className="bg-input border-border" value={settings.mobile_money_number ?? ''} onChange={e => set('mobile_money_number', e.target.value)} placeholder="0962267118" />
-                    <p className="text-[10px] text-muted-foreground">Number nominees send payment to</p>
-                  </div>
+              
+              {/* Toggle Automatic vs Manual Mode */}
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/20">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Payment Mode</Label>
+                  <p className="text-xs text-muted-foreground">Select whether voting requires admin approval or uses automatic Lipila checkout.</p>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Payment Instructions (displayed to nominees)</Label>
-                  <Textarea className="bg-input border-border resize-none min-h-24" value={settings.payment_instructions ?? ''} onChange={e => set('payment_instructions', e.target.value)} placeholder={`1. Send K100 to Mobile Money 0962267118\n2. Screenshot your confirmation\n3. Send via WhatsApp when prompted`} />
-                </div>
+                <Select value={settings.payment_mode ?? 'automatic'} onValueChange={v => set('payment_mode', v as 'manual' | 'automatic')}>
+                  <SelectTrigger className="w-[180px] bg-background border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="automatic">Automatic Payments</SelectItem>
+                    <SelectItem value="manual">Manual Payments</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Voting fee */}
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Voting Fee</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Voting Fee (per vote)</Label>
-                  <Input type="number" min="1" className="bg-input border-border" value={settings.voting_fee ?? 10} onChange={e => set('voting_fee', Number(e.target.value))} />
+              {(settings.payment_mode ?? 'automatic') === 'automatic' && (
+                <div className="space-y-4 p-4 border border-primary/20 rounded-lg bg-primary/5">
+                  <h3 className="text-sm font-bold text-primary">Lipila API Configuration</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label>Lipila Account ID</Label>
+                      <Input className="bg-input border-border" value={settings.lipila_account_id ?? ''} onChange={e => set('lipila_account_id', e.target.value)} placeholder="e.g. mer_12345" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Lipila API Key</Label>
+                      <Input type="password" className="bg-input border-border" value={settings.lipila_api_key ?? ''} onChange={e => set('lipila_api_key', e.target.value)} placeholder="sk_..." />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Webhook Secret</Label>
+                      <Input type="password" className="bg-input border-border" value={settings.lipila_webhook_secret ?? ''} onChange={e => set('lipila_webhook_secret', e.target.value)} placeholder="whsec_..." />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Currency</Label>
+                      <Input className="bg-input border-border" value={settings.lipila_currency ?? 'ZMW'} onChange={e => set('lipila_currency', e.target.value)} />
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 md:col-span-2">
+                      <input type="checkbox" id="sandbox" checked={settings.lipila_sandbox ?? true} onChange={e => set('lipila_sandbox', e.target.checked)} className="rounded border-border bg-input" />
+                      <Label htmlFor="sandbox">Enable Sandbox Mode (Test Environment)</Label>
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-sm font-bold text-primary pt-3 border-t border-border/50">Supported Providers</h3>
+                  <div className="flex flex-wrap gap-4">
+                    <Label className="flex items-center gap-2"><input type="checkbox" checked={settings.mtn_enabled ?? true} onChange={e => set('mtn_enabled', e.target.checked)} /> MTN Mobile Money</Label>
+                    <Label className="flex items-center gap-2"><input type="checkbox" checked={settings.airtel_enabled ?? true} onChange={e => set('airtel_enabled', e.target.checked)} /> Airtel Money</Label>
+                    <Label className="flex items-center gap-2"><input type="checkbox" checked={settings.zamtel_enabled ?? true} onChange={e => set('zamtel_enabled', e.target.checked)} /> Zamtel</Label>
+                    <Label className="flex items-center gap-2"><input type="checkbox" checked={settings.cards_enabled ?? false} onChange={e => set('cards_enabled', e.target.checked)} /> Bank Cards</Label>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Currency Symbol</Label>
-                  <Input className="bg-input border-border" value={settings.currency ?? 'K'} onChange={e => set('currency', e.target.value)} placeholder="K" />
-                </div>
-              </div>
+              )}
 
-              {/* Banking */}
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Banking Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Account Name</Label>
-                  <Input className="bg-input border-border" value={settings.account_name ?? ''} onChange={e => set('account_name', e.target.value)} placeholder="TUNYA AWARDS" />
+              {(settings.payment_mode ?? 'automatic') === 'manual' && (
+                <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/10">
+                  <h3 className="text-sm font-bold">Manual Payment Configuration</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5"><Label>Mobile Money Number</Label><Input className="bg-input border-border" value={settings.mobile_money_number ?? ''} onChange={e => set('mobile_money_number', e.target.value)} /></div>
+                    <div className="space-y-1.5"><Label>Account Name</Label><Input className="bg-input border-border" value={settings.account_name ?? ''} onChange={e => set('account_name', e.target.value)} /></div>
+                    <div className="space-y-1.5"><Label>Bank Name</Label><Input className="bg-input border-border" value={settings.bank_name ?? ''} onChange={e => set('bank_name', e.target.value)} /></div>
+                    <div className="space-y-1.5"><Label>Bank Account Number</Label><Input className="bg-input border-border" value={settings.bank_account ?? ''} onChange={e => set('bank_account', e.target.value)} /></div>
+                  </div>
+                  <div className="space-y-1.5"><Label>Payment Instructions</Label><Textarea className="bg-input border-border resize-none" value={settings.payment_instructions ?? ''} onChange={e => set('payment_instructions', e.target.value)} /></div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Bank Name</Label>
-                  <Input className="bg-input border-border" value={settings.bank_name ?? ''} onChange={e => set('bank_name', e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Bank Account Number</Label>
-                  <Input className="bg-input border-border" value={settings.bank_account ?? ''} onChange={e => set('bank_account', e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Payment QR Code URL</Label>
-                  <Input className="bg-input border-border" value={settings.payment_qr_url ?? ''} onChange={e => set('payment_qr_url', e.target.value)} placeholder="https://..." />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Manual Verification</Label>
-                  <Select value={settings.manual_verification !== false ? 'true' : 'false'} onValueChange={v => set('manual_verification', v === 'true')}>
-                    <SelectTrigger className="bg-input border-border"><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value="true">Enabled</SelectItem><SelectItem value="false">Disabled</SelectItem></SelectContent>
-                  </Select>
-                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-border">
+                <div className="space-y-1.5"><Label>Voting Fee ({settings.currency ?? 'K'})</Label><Input type="number" className="bg-input border-border" value={settings.voting_fee ?? 0} onChange={e => set('voting_fee', Number(e.target.value))} /></div>
+                <div className="space-y-1.5"><Label>Nomination Fee ({settings.currency ?? 'K'})</Label><Input type="number" className="bg-input border-border" value={settings.nomination_fee ?? 0} onChange={e => set('nomination_fee', Number(e.target.value))} /></div>
+                <div className="space-y-1.5"><Label>Min Votes per Transaction</Label><Input type="number" className="bg-input border-border" value={settings.vote_min_quantity ?? 1} onChange={e => set('vote_min_quantity', Number(e.target.value))} /></div>
+                <div className="space-y-1.5"><Label>Max Votes per Transaction</Label><Input type="number" className="bg-input border-border" value={settings.vote_max_quantity ?? 1000} onChange={e => set('vote_max_quantity', Number(e.target.value))} /></div>
+                <div className="space-y-1.5"><Label>Voting Start Date</Label><Input type="datetime-local" className="bg-input border-border" value={settings.voting_start_date ? settings.voting_start_date.slice(0, 16) : ''} onChange={e => set('voting_start_date', e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Voting End Date</Label><Input type="datetime-local" className="bg-input border-border" value={settings.voting_end_date ? settings.voting_end_date.slice(0, 16) : ''} onChange={e => set('voting_end_date', e.target.value)} /></div>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/20">
+                <Label>Voting Open/Closed Status</Label>
+                <Select value={settings.voting_status ?? 'open'} onValueChange={v => set('voting_status', v as 'open' | 'closed')}>
+                  <SelectTrigger className="w-[180px] bg-background border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Voting Open</SelectItem>
+                    <SelectItem value="closed">Voting Closed</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </TabsContent>

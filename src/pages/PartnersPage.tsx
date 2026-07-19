@@ -39,13 +39,13 @@ export default function PartnersPage() {
                   <div className="glass-card rounded-xl p-5 hover-gold h-full flex flex-col">
                     <div className="flex items-center gap-3 mb-3">
                       {p.logo_url ? (
-                        <img src={p.logo_url} alt={p.org_name} className="w-12 h-12 object-contain rounded-lg border border-border shrink-0" />
+                        <img src={p.logo_url} alt={p.org_name} className="w-14 h-14 object-contain rounded-full border-2 border-primary/20 bg-background/50 shrink-0" />
                       ) : (
-                        <div className="w-12 h-12 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                          <span className="text-primary font-black">{p.org_name[0]}</span>
+                        <div className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center shrink-0 border-2 border-primary/20 shadow-md">
+                          <Handshake className="w-6 h-6 text-primary-foreground" />
                         </div>
                       )}
-                      <h3 className="font-bold text-sm truncate flex-1">{p.org_name}</h3>
+                      <h3 className="font-bold text-lg truncate flex-1 text-foreground">{p.org_name}</h3>
                     </div>
                     {p.description && <p className="text-xs text-muted-foreground line-clamp-2 flex-1">{p.description}</p>}
                     {p.rep_name && <p className="text-xs text-muted-foreground mt-1">Rep: {p.rep_name}</p>}

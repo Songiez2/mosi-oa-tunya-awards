@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { getNomineeById } from '@/lib/api';
+import { getNomineeById, getUserVotes } from '@/lib/api';
 import PublicLayout from '@/components/layouts/PublicLayout';
 import VoteModal from '@/components/common/VoteModal';
 import GoldLoader from '@/components/common/GoldLoader';
@@ -12,19 +12,29 @@ import {
   Phone, Trophy, ChevronLeft, MessageCircle
 } from 'lucide-react';
 import type { Nominee } from '@/types/types';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export default function NomineeProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
   const [nominee, setNominee] = useState<Nominee | null>(null);
+  const [myVotesCount, setMyVotesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [voteOpen, setVoteOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     getNomineeById(id).then(n => { setNominee(n); setLoading(false); });
-  }, [id]);
+    
+    if (user) {
+      getUserVotes(user.id).then(votes => {
+        const total = votes.filter(v => v.nominee_id === id).reduce((sum, v) => sum + (v.votes_count || 1), 0);
+        setMyVotesCount(total);
+      });
+    }
+  }, [id, user]);
 
   const handleShare = () => {
     navigator.share?.({ title: nominee?.full_name, url: window.location.href })
@@ -100,8 +110,10 @@ export default function NomineeProfilePage() {
                   <Star className="w-7 h-7 text-primary-foreground fill-primary-foreground" />
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-gradient-gold">{nominee.vote_count.toLocaleString()}</div>
-                  <div className="text-sm text-muted-foreground">Total Votes</div>
+                  <div className="text-3xl font-black text-gradient-gold">
+                    {isAdmin ? nominee.vote_count.toLocaleString() : myVotesCount.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground">{isAdmin ? 'Total Votes' : 'Your Votes Cast'}</div>
                 </div>
                 <Button className="ml-auto bg-gradient-gold text-primary-foreground font-bold shrink-0" onClick={() => setVoteOpen(true)}>
                   Vote Now

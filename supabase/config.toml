@@ -1,0 +1,14 @@
+[project]
+ref = "jxsmbturssyhhilycspo"
+
+[api]
+enabled = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.verify-payment]
+verify_jwt = true
+
+[functions.lipila-webhook]
+verify_jwt = false

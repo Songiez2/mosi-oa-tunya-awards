@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, Eye, Trophy } from 'lucide-react';
 import type { Nominee } from '@/types/types';
+import { useAuth } from '@/contexts/AuthContext';
 import VoteModal from './VoteModal';
 
 export default function NomineeCard({ nominee, index = 0 }: { nominee: Nominee; index?: number }) {
   const navigate = useNavigate();
   const [voteOpen, setVoteOpen] = useState(false);
+  const { isAdmin } = useAuth();
 
   return (
     <>
@@ -51,11 +53,13 @@ export default function NomineeCard({ nominee, index = 0 }: { nominee: Nominee; 
           </div>
 
           {/* Votes */}
-          <div className="flex items-center gap-1 mt-2">
-            <Star className="w-3.5 h-3.5 text-primary fill-primary" />
-            <span className="text-xs font-bold text-primary">{nominee.vote_count.toLocaleString()}</span>
-            <span className="text-xs text-muted-foreground">votes</span>
-          </div>
+          {isAdmin && (
+            <div className="flex items-center gap-1 mt-2">
+              <Star className="w-3.5 h-3.5 text-primary fill-primary" />
+              <span className="text-xs font-bold text-primary">{nominee.vote_count.toLocaleString()}</span>
+              <span className="text-xs text-muted-foreground">votes</span>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-2 mt-3 mt-auto">

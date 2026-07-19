@@ -103,7 +103,7 @@ export default function AdminPartners() {
                   <tr key={p.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-2.5 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        {p.logo_url ? <img src={p.logo_url} className="w-7 h-7 rounded object-contain bg-white/5" alt="" /> : <div className="w-7 h-7 rounded bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">{p.org_name[0]}</div>}
+                        {p.logo_url ? <img src={p.logo_url} className="w-8 h-8 rounded-full object-cover border border-primary/20" alt="" /> : <div className="w-8 h-8 rounded-full bg-gradient-gold flex items-center justify-center text-[12px] font-bold text-primary-foreground shadow-sm">{p.org_name.charAt(0).toUpperCase()}</div>}
                         <span className="text-sm font-medium">{p.org_name}</span>
                       </div>
                     </td>
