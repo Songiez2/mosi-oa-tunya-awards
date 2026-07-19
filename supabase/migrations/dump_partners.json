@@ -1,0 +1,41 @@
+[
+  {
+    "id": "451eed6c-4827-446f-b8fc-c3690d64a16e",
+    "org_name": " Chikankata TOP Stories",
+    "logo_url": null,
+    "email": "Chikankata TOP Stories",
+    "phone": "",
+    "website": "",
+    "description": "",
+    "address": "",
+    "rep_name": "Chikankata TOP Stories",
+    "status": "approved",
+    "created_at": "2026-07-16T18:29:00.535465+00:00"
+  },
+  {
+    "id": "a9ba502b-6615-41dc-a9e3-07afb377f326",
+    "org_name": "CITYSCAPE LOGISTICS AND CAR HIRE ",
+    "logo_url": null,
+    "email": "cityscapelogistics12@gmail.com",
+    "phone": "",
+    "website": "",
+    "description": "",
+    "address": "",
+    "rep_name": "CITYSCAPE LOGISTICS AND CAR HIRE ",
+    "status": "approved",
+    "created_at": "2026-07-16T18:32:08.175825+00:00"
+  },
+  {
+    "id": "1a816fd5-c533-4207-8e13-e688bbb77c9a",
+    "org_name": "Tavaro pay solutions ",
+    "logo_url": null,
+    "email": "Tavaro pay solutions",
+    "phone": "",
+    "website": "",
+    "description": "",
+    "address": "",
+    "rep_name": "Tavaro pay solutions",
+    "status": "approved",
+    "created_at": "2026-07-16T18:33:40.541846+00:00"
+  }
+]

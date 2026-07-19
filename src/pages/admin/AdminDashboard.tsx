@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/components/layouts/AdminLayout';
 import { getDashboardStats, getVotesByCategory, getTopNominees } from '@/lib/api';
+import { supabase } from '@/db/supabase';
 import { useSettings } from '@/contexts/SettingsContext';
 import { CountUp } from '@/components/common/CountUp';
 import GoldLoader from '@/components/common/GoldLoader';
@@ -41,19 +42,22 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [votesByCategory, setVotesByCategory] = useState<{ name: string; votes: number }[]>([]);
   const [topNominees, setTopNominees] = useState<Nominee[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const currency = settings.currency ?? 'K';
 
   const load = async () => {
     setLoading(true);
-    const [s, vc, tn] = await Promise.all([
+    const [s, vc, tn, rp] = await Promise.all([
       getDashboardStats(),
       getVotesByCategory(),
       getTopNominees(8),
+      supabase.from('payments').select('*, profiles:user_id(full_name), nominees:nominee_id(full_name)').order('created_at', { ascending: false }).limit(5),
     ]);
     setStats(s);
     setVotesByCategory(vc);
     setTopNominees(tn);
+    setRecentActivity(rp.data || []);
     setLoading(false);
   };
 
@@ -221,6 +225,44 @@ export default function AdminDashboard() {
                     </tr>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Recent Activity Logs */}
+        <div className="glass-card rounded-xl p-4">
+          <h2 className="font-bold text-sm mb-4 text-gradient-gold">Recent Transactions / Activity</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-max">
+              <thead>
+                <tr className="text-left text-xs text-muted-foreground border-b border-border">
+                  <th className="pb-2 pr-4 whitespace-nowrap font-semibold">Time</th>
+                  <th className="pb-2 pr-4 whitespace-nowrap font-semibold">User</th>
+                  <th className="pb-2 pr-4 whitespace-nowrap font-semibold">Action</th>
+                  <th className="pb-2 pr-4 whitespace-nowrap font-semibold">Amount</th>
+                  <th className="pb-2 whitespace-nowrap font-semibold">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentActivity.map((log, i) => (
+                  <tr key={i} className="border-b border-border/50 last:border-0">
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</td>
+                    <td className="py-2.5 pr-4 text-sm whitespace-nowrap">{(log.profiles as any)?.full_name ?? 'Unknown'}</td>
+                    <td className="py-2.5 pr-4 text-xs whitespace-nowrap">
+                      {log.payment_type === 'voting' ? `Voted for ${(log.nominees as any)?.full_name ?? 'Nominee'}` : `Registered Nominee`}
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs font-bold text-primary whitespace-nowrap">{currency}{log.amount.toLocaleString()}</td>
+                    <td className="py-2.5 whitespace-nowrap">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${log.status === 'approved' ? 'bg-success/20 text-success' : log.status === 'rejected' ? 'bg-destructive/20 text-destructive' : 'bg-warning/20 text-warning'}`}>
+                        {log.status.toUpperCase()}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {recentActivity.length === 0 && (
+                  <tr><td colSpan={5} className="py-4 text-center text-xs text-muted-foreground">No recent activity found.</td></tr>
+                )}
               </tbody>
             </table>
           </div>

@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 export default function RegisterPage() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ fullName: '', email: '', phone: '', password: '', confirm: '' });
+  const [form, setForm] = useState({ fullName: '', email: '', phone: '', country: '', province: '', city: '', password: '', confirm: '' });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -25,7 +25,7 @@ export default function RegisterPage() {
     if (form.password !== form.confirm) { toast.error('Passwords do not match'); return; }
     if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
     setLoading(true);
-    const { error } = await signUp(form.email, form.password, form.fullName, form.phone);
+    const { error } = await signUp(form.email, form.password, form.fullName, form.phone, form.country, form.province, form.city);
     setLoading(false);
     if (error) { toast.error(error); return; }
     setDone(true);
@@ -75,14 +75,28 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label>Phone Number</Label>
+                <Label>Phone Number *</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input className="pl-9 bg-input border-border" placeholder="0962 267 118" value={form.phone} onChange={set('phone')} />
+                  <Input className="pl-9 bg-input border-border" placeholder="0962 267 118" value={form.phone} onChange={set('phone')} required />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1.5">
+                  <Label>Country</Label>
+                  <Input className="bg-input border-border text-xs px-2" placeholder="Zambia" value={form.country} onChange={set('country')} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Province</Label>
+                  <Input className="bg-input border-border text-xs px-2" placeholder="Southern" value={form.province} onChange={set('province')} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>City</Label>
+                  <Input className="bg-input border-border text-xs px-2" placeholder="Livingstone" value={form.city} onChange={set('city')} />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label>Password</Label>
+                <Label>Password *</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input type={showPw ? 'text' : 'password'} className="pl-9 pr-9 bg-input border-border" placeholder="At least 6 characters" value={form.password} onChange={set('password')} />

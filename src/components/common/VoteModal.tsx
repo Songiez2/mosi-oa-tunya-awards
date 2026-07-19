@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Star, Smartphone } from 'lucide-react';
+import { Upload, Loader2, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
-import { createLipilaPayment, pollPaymentStatus } from '@/lib/api';
+import { createPayment, uploadFile } from '@/lib/api';
+import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { Nominee } from '@/types/types';
 
-const VOTE_PACKS = [1, 2, 5, 10, 20, 50];
+const VOTE_PACKS = [1, 5, 10, 20];
 
 interface VoteModalProps {
   nominee: Nominee | null;
@@ -21,13 +22,21 @@ interface VoteModalProps {
 }
 
 export default function VoteModal({ nominee, open, onClose }: VoteModalProps) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { settings } = useSettings();
   const navigate = useNavigate();
   const [votes, setVotes] = useState('1');
-  const [phone, setPhone] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phone || '');
+  const [proof, setProof] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [polling, setPolling] = useState(false);
+
+  React.useEffect(() => {
+    if (open) {
+      setPhoneNumber(user?.phone || '');
+      setVotes('1');
+      setProof(null);
+    }
+  }, [open, user?.phone]);
 
   const fee = Number(settings.voting_fee ?? 10);
   const currency = settings.currency ?? 'K';
@@ -36,57 +45,85 @@ export default function VoteModal({ nominee, open, onClose }: VoteModalProps) {
   const handleSubmit = async () => {
     if (!user) { navigate('/login'); return; }
     if (!nominee) return;
-    if (!phone) { toast.error('Please enter your phone number'); return; }
-    if (phone.replace(/\D/g, '').length < 9) { toast.error('Please enter a valid phone number'); return; }
-
+    
     setLoading(true);
     try {
-      const result = await createLipilaPayment({
-        phone: phone.replace(/\D/g, ''),
-        nominee_id: nominee.id,
-        user_id: user.id,
-        email: user.email,
-        votes_count: parseInt(votes),
-      });
+      if ((settings.payment_mode ?? 'automatic') === 'automatic') {
+        if (!phoneNumber || phoneNumber.length < 9) {
+          toast.error('Please enter a valid mobile money number');
+          setLoading(false);
+          return;
+        }
 
-      if (result) {
-        toast.success('Payment initiated! Please complete the payment on your phone.', {
-          description: 'Waiting for payment confirmation...',
-          duration: 5000,
+        const payload = {
+          amount: total,
+          phoneNumber: phoneNumber,
+          reference: `VOTE-${Date.now()}-${user.id.substring(0, 5)}`,
+          narration: `Vote for ${nominee.stage_name || nominee.full_name}`
+        };
+
+        const { data, error } = await supabase.functions.invoke('lipila-payment', {
+          body: payload
         });
 
-        // Start polling for payment status
-        setPolling(true);
-        setLoading(false);
-
-        try {
-          const finalPayment = await pollPaymentStatus(result.payment.id, 40, 3000);
-          setPolling(false);
-
-          if (finalPayment.status === 'completed') {
-            toast.success('Payment successful! Your votes have been added.', {
-              duration: 5000,
-            });
-            onClose();
-            // Refresh the page to show updated vote counts
-            window.location.reload();
-          } else if (finalPayment.status === 'failed') {
-            toast.error('Payment failed. Please try again.');
+        if (error) {
+          // Sometimes error has a response property we can await, or context is in error.context
+          console.error("Edge function error:", error);
+          if (error instanceof Error && error.message.includes('non-2xx')) {
+             throw new Error('Payment gateway error. Please verify the Lipila API keys are configured in Admin Settings.');
           }
-        } catch (pollError) {
-          setPolling(false);
-          toast.error('Payment verification timeout. Please check your payment status later.');
-          console.error('Polling error:', pollError);
+          throw new Error(error.message || 'Payment initiation failed');
         }
+
+        if (data && data.error) {
+          throw new Error(data.error);
+        }
+
+        const result = await createPayment({
+          payment_type: 'voting',
+          nominee_id: nominee.id,
+          amount: total,
+          votes_count: parseInt(votes),
+          payment_proof_url: 'lipila_automatic_checkout',
+          status: 'pending',
+          transaction_ref: payload.reference,
+        });
+
+        toast.success(`Check your phone to complete payment`, {
+          description: 'Enter your PIN to approve the payment. Votes will update automatically.',
+          duration: 8000,
+        });
+        onClose();
+        
       } else {
-        toast.error('Failed to initiate payment. Please try again.');
-        setLoading(false);
+        if (!proof) { toast.error('Please upload payment proof'); setLoading(false); return; }
+
+        const proofUrl = await uploadFile('payments', `votes/${user.id}/${Date.now()}_${proof.name}`, proof);
+        if (!proofUrl) { toast.error('Failed to upload payment proof'); setLoading(false); return; }
+
+        const result = await createPayment({
+          payment_type: 'voting',
+          nominee_id: nominee.id,
+          amount: total,
+          votes_count: parseInt(votes),
+          payment_proof_url: proofUrl,
+          status: 'pending',
+        });
+
+        if (result) {
+          toast.success(`Vote submitted! Reference: ${result.transaction_ref}`, {
+            description: 'Your payment is being verified. Votes will be added within 24 hours.',
+            duration: 6000,
+          });
+          onClose();
+        } else {
+          toast.error('Failed to submit vote. Please try again.');
+        }
       }
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast.error('An error occurred. Please try again.');
+    } catch (e: any) {
+      toast.error('An error occurred. ' + (e.message || 'Please try again.'));
+    } finally {
       setLoading(false);
-      setPolling(false);
     }
   };
 
@@ -115,13 +152,14 @@ export default function VoteModal({ nominee, open, onClose }: VoteModalProps) {
             <div className="min-w-0">
               <div className="font-semibold text-sm truncate">{nominee.full_name}</div>
               <div className="text-xs text-muted-foreground truncate">{(nominee.categories as { name?: string } | null)?.name ?? ''}</div>
+              {isAdmin && <div className="text-xs text-primary font-medium">{nominee.vote_count.toLocaleString()} votes</div>}
             </div>
           </div>
 
           {/* Vote count */}
           <div className="space-y-1.5">
             <Label className="text-sm">Number of Votes</Label>
-            <Select value={votes} onValueChange={setVotes} disabled={loading || polling}>
+            <Select value={votes} onValueChange={setVotes}>
               <SelectTrigger className="bg-input border-border">
                 <SelectValue />
               </SelectTrigger>
@@ -135,21 +173,20 @@ export default function VoteModal({ nominee, open, onClose }: VoteModalProps) {
             </Select>
           </div>
 
-          {/* Phone Input */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">Mobile Money Number *</Label>
-            <div className="relative">
-              <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                className="bg-input border-border pl-10"
-                placeholder="0962 267 118"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                disabled={loading || polling}
+          {/* Mobile Money Number (For Automatic Mode) */}
+          {(settings.payment_mode ?? 'automatic') === 'automatic' && (
+            <div className="space-y-1.5">
+              <Label className="text-sm">Mobile Money Number</Label>
+              <Input 
+                type="tel" 
+                placeholder="e.g. 0970000000" 
+                value={phoneNumber} 
+                onChange={(e) => setPhoneNumber(e.target.value)} 
+                className="bg-input border-border"
               />
+              <p className="text-[10px] text-muted-foreground">Enter the number that will receive the payment prompt.</p>
             </div>
-            <p className="text-xs text-muted-foreground">Enter your Airtel or MTN mobile money number</p>
-          </div>
+          )}
 
           {/* Amount */}
           <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 text-center">
@@ -158,25 +195,36 @@ export default function VoteModal({ nominee, open, onClose }: VoteModalProps) {
             <div className="text-xs text-muted-foreground mt-1">Total Amount to Pay</div>
           </div>
 
-          {/* Payment Info */}
-          <div className="p-3 rounded-lg bg-muted border border-border text-xs text-muted-foreground space-y-1">
-            <div className="font-medium text-foreground text-xs">Payment Information</div>
-            <p>After clicking "Pay Now", you will receive a prompt on your phone to enter your PIN and complete the payment.</p>
-          </div>
+          {/* Payment Instructions & Proof Upload for Manual Mode */}
+          {(settings.payment_mode ?? 'automatic') === 'manual' && (
+            <>
+              <div className="p-3 rounded-lg bg-muted border border-border text-xs text-muted-foreground space-y-1">
+                <div className="font-medium text-foreground text-xs">Payment Instructions</div>
+                <pre className="whitespace-pre-wrap font-sans text-xs leading-relaxed">
+                  {settings.payment_instructions ?? `Send ${currency}${total} to ${settings.mobile_money_number ?? '0962267118'} (${settings.account_name ?? 'TUNYA AWARDS'})`}
+                </pre>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">Payment Proof *</Label>
+                <label className="flex flex-col items-center justify-center h-20 rounded-lg border-2 border-dashed border-primary/30 cursor-pointer hover:border-primary/60 transition-colors bg-muted">
+                  <Upload className="w-5 h-5 text-primary mb-1" />
+                  <span className="text-xs text-muted-foreground">{proof ? proof.name : 'Upload screenshot'}</span>
+                  <input type="file" className="hidden" accept="image/*" onChange={e => setProof(e.target.files?.[0] ?? null)} />
+                </label>
+              </div>
+            </>
+          )}
 
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose} disabled={loading || polling}>Cancel</Button>
+            <Button variant="secondary" className="flex-1" onClick={onClose} disabled={loading}>Cancel</Button>
             <Button
               className="flex-1 bg-gradient-gold text-primary-foreground font-semibold"
               onClick={handleSubmit}
-              disabled={loading || polling}
+              disabled={loading}
             >
-              {loading || polling ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Star className="w-4 h-4 mr-2" />
-              )}
-              {polling ? 'Processing...' : 'Pay Now'}
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Star className="w-4 h-4 mr-2" />}
+              {(settings.payment_mode ?? 'automatic') === 'automatic' ? 'PAY NOW (Lipila)' : 'Submit Vote'}
             </Button>
           </div>
 

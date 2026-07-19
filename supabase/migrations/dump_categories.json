@@ -1,0 +1,250 @@
+[
+  {
+    "id": "c4a0b04a-f528-4e5f-a4e3-252cc4af70d3",
+    "name": "Best Local Hospitality Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 3,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "09877aab-6828-4a9a-8cd5-3616ba2344c9",
+    "name": "Best Social Media Page Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 4,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "232c84a9-cdac-4613-a704-29556d6501e3",
+    "name": "Best Influencer Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 5,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "feea71a4-68f4-47ac-b2b5-809209ccde4a",
+    "name": "Best Photographer Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 6,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "90796b3d-7705-4ca6-84cd-d1b7793ab1b8",
+    "name": "Best Videographer Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 7,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "31be3542-e0a9-4a4e-8ad6-0de276283e17",
+    "name": "Best Event Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 8,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "36ea9cc1-550d-450a-b077-d130491b159a",
+    "name": "Best Model Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 9,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "d6f2f361-cdcc-4536-9cf4-91d4abab25c3",
+    "name": "Best Dancer / Dance Group Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 10,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "cb7757aa-f77f-4fb9-9ead-3db5550aa5a5",
+    "name": "Best Provincial Male Artist of the Year",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 11,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "c0403c11-2cce-462a-af62-f5ff469a8899",
+    "name": "Best Provincial Female Artist of the Year",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 12,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "784182dc-d011-4153-a1b1-3b2e4a41a090",
+    "name": "Best Music Video Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 13,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "743bc549-eb88-4b4e-8982-c07ff1de35de",
+    "name": "Best Gospel Artist Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 14,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "c6c817cc-b57c-4025-a9f4-c39c6be24a62",
+    "name": "Song of the Year Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 15,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "9c6ba04d-b452-4e87-93db-978dbf38dddb",
+    "name": "Best Music Producer Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 16,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "d06b2a0f-d957-4af1-aca3-0cfd6b8116a7",
+    "name": "Best Comedian of the Year Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 17,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "59cf1698-2999-4cb8-90fa-42900fb3ec9d",
+    "name": "Best Provincial Club DJ Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 18,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "e4c8e69a-84af-46d1-ab08-5771d68d5020",
+    "name": "Best Radio Station Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 19,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "a493b568-c389-4c83-9f29-62a23bd50df7",
+    "name": "Best Tour Agency Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 20,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "4b6a1dd2-94dc-4300-9a9f-e93c0a3e83b4",
+    "name": "Best Newcomer (Male)",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 21,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "636d23ea-aaf1-44e3-b9dc-9afc474e0f95",
+    "name": "Best Newcomer (Female)",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 22,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "34f4d3bc-85b3-470c-b86d-0588fa95077d",
+    "name": "Best Band Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 23,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "fcbd66fe-64d8-4d1c-a265-1144c2b753fe",
+    "name": "Best Female Artist Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 24,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "9f1aff06-4ee4-48b7-8953-9d360fc40708",
+    "name": "Best Male Artist Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 25,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "1d443c3a-8c0e-428b-acd0-79071105bf2a",
+    "name": "Best Local Business Award",
+    "description": "new",
+    "is_enabled": true,
+    "sort_order": 1,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "5e055b4b-cf11-4102-8979-ea8b3e05a1c8",
+    "name": "HUMANITARIAN AWARD 2026",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 0,
+    "created_at": "2026-07-13T07:21:10.172481+00:00"
+  },
+  {
+    "id": "2d23e92a-385b-4c4d-8444-737a35f1b01b",
+    "name": " Best cultural group of the year",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 0,
+    "created_at": "2026-07-13T12:01:48.487665+00:00"
+  },
+  {
+    "id": "7d654791-3883-4560-8637-65c485e7100e",
+    "name": "BEST Master of Ceremony (MC) ",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 0,
+    "created_at": "2026-07-13T15:25:57.459816+00:00"
+  },
+  {
+    "id": "eabc0bc4-629d-4336-9821-50c946d5b85e",
+    "name": "Best Night Club / PUB Award",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 2,
+    "created_at": "2026-07-08T22:52:44.815735+00:00"
+  },
+  {
+    "id": "063e3625-3666-4500-bc34-af7938b8748d",
+    "name": "BEST HIP HOP / RAP SONG AWARD",
+    "description": null,
+    "is_enabled": true,
+    "sort_order": 0,
+    "created_at": "2026-07-14T16:22:10.437441+00:00"
+  },
+  {
+    "id": "dc21a917-b083-42c3-a72e-85ed644d0868",
+    "name": "Community Theatre Awards",
+    "description": "3 Winners Announcement \n",
+    "is_enabled": true,
+    "sort_order": 0,
+    "created_at": "2026-07-16T16:22:11.738706+00:00"
+  },
+  {
+    "id": "157f17d2-ed4d-4892-8925-e2180530281c",
+    "name": "BEST COLLEGE / UNIVERSITY AWARD",
+    "description": "Southern Province institutions shaping future leaders",
+    "is_enabled": true,
+    "sort_order": 0,
+    "created_at": "2026-07-18T07:38:51.869289+00:00"
+  }
+]
