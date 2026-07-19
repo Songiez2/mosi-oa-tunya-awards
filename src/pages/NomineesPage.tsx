@@ -22,7 +22,7 @@ export default function NomineesPage() {
   const categoryId = params.get('cat') ?? '';
   const search = params.get('q') ?? '';
 
-  useEffect(() => { getCategories(true).then(setCategories); }, []);
+  useEffect(() => { getCategories(false).then(setCategories); }, []);
   useEffect(() => {
     setLoading(true);
     getNominees(page, PAGE_SIZE, categoryId || undefined, search, 'approved').then(r => {

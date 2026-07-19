@@ -99,7 +99,7 @@ export default function HomePage() {
   const [news, setNews] = React.useState<NewsType[]>([]);
 
   useEffect(() => {
-    getCategories(true).then(setCategories);
+    getCategories(false).then(setCategories);
     getFeaturedNominees().then(setNominees);
     getSponsors().then(setSponsors);
     getPartners().then(setPartners);
@@ -261,10 +261,10 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {categories.slice(0, 10).map((cat, i) => (
+            {categories.map((cat, i) => (
               <motion.div
                 key={cat.id}
-                initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}
+                initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.02 }}
               >
                 <Link to={`/categories?cat=${cat.id}`}>
                   <div className="glass-card rounded-xl p-4 text-center hover-gold group cursor-pointer">
@@ -276,18 +276,6 @@ export default function HomePage() {
                 </Link>
               </motion.div>
             ))}
-            {categories.length > 10 && (
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.42 }}>
-                <Link to="/categories">
-                  <div className="glass-card rounded-xl p-4 text-center hover-gold group cursor-pointer border-primary/30">
-                    <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center mx-auto mb-2.5">
-                      <ChevronRight className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <div className="text-xs font-medium text-primary">+{categories.length - 10} More</div>
-                  </div>
-                </Link>
-              </motion.div>
-            )}
           </div>
 
           <div className="text-center mt-8">

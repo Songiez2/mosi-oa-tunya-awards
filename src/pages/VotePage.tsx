@@ -33,7 +33,7 @@ export default function VotePage() {
     setLoading(false);
   };
 
-  useEffect(() => { getCategories(true).then(setCategories); }, []);
+  useEffect(() => { getCategories(false).then(setCategories); }, []);
   useEffect(() => { fetchNominees(); }, [page, categoryId, search]);
 
   const updateParam = (key: string, val: string) => {
